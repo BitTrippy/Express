@@ -1,15 +1,6 @@
-/*let data = [
-  { id: 1, firstName: "Matti", lastName: "Ruohonen" },
-  { id: 2, firstName: "Teppo", lastName: "Ruohonen" },
-];*/
-
 let dictionary = [];
 const express = require("express");
 const fs = require("fs");
-
-//const bodyParser = require("body-parser");
-/* const app = express().use(bodyParser.json()); //vanha tapa - ei enÃ¤Ã¤ voimassa. 
-kts. https://devdocs.io/express/ -> req.body*/
 
 var app = express();
 app.use(express.json()); // for parsing application/json
@@ -17,8 +8,8 @@ app.use(express.urlencoded({ extended: true }));
 
 /*CORS isn't enabled on the server, this is due to security reasons by default,
 so no one else but the webserver itself can make requests to the server.*/
-// Add headers
 
+// Add headers
 app.use(function (req, res, next) {
   // Website you wish to allow to connect
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -45,8 +36,12 @@ app.use(function (req, res, next) {
   next();
 });
 
-//GET all users
-app.get("/words", (req, res) => {
+// Osoite: localhost:3000
+// Metodi: GET
+// Kuvaus: Palauttaa sanakirjan sisällön
+// Parametrit: Ei parametreja
+// Ongelmia: Vie jokaisella kutsulla sanakirjan sisällön, joka monistuu joka kerta (suorita vain kerran)
+app.get("/", (req, res) => {
   const data = fs.readFileSync("./sanakirja.txt", {
     encoding: "utf8",
     flag: "r",
@@ -78,6 +73,11 @@ app.get("/words", (req, res) => {
   res.json(dictionary);
 });
 
+// Osoite: localhost:3000/searchword?fin=<hakusana>
+// Metodi: GET
+// Kuvaus: Hakee suomenkielisen sanan perusteella englanninkielisen sanan
+// Parametrit: fin (suomenkielinen sana)
+// Ongelmia: ???
 app.get("/searchword", (req, res) => {
   const { fin } = req.query;
   const filteredWords = dictionary.filter((word) => word.fin === fin);
@@ -85,6 +85,11 @@ app.get("/searchword", (req, res) => {
   res.json(englishPair);
 });
 
+// Osoite: localhost:3000/addword?fin=<suomenkielinen sana>&eng=<englanninkielinen sana>
+// Metodi: POST
+// Kuvaus: Lisää uuden sanaparin sanakirjaan
+// Parametrit: fin (suomenkielinen sana), eng (englanninkielinen sana)
+// Ongelmia: ???
 app.post("/addword", (req, res) => {
   const { fin, eng } = req.query;
   const word = {
