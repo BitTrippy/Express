@@ -81,9 +81,7 @@ app.get("/words", (req, res) => {
 app.get("/searchword", (req, res) => {
   const { fin } = req.query;
   const filteredWords = dictionary.filter((word) => word.fin === fin);
-  const englishPair = filteredWords.map((word) => ({
-    eng: word.eng,
-  }));
+  const englishPair = filteredWords.map((word) => ({ eng: word.eng }));
   res.json(englishPair);
 });
 
@@ -114,32 +112,3 @@ app.post("/addword", (req, res) => {
 app.listen(3000, () => {
   console.log("Server listening at port 3000");
 });
-
-// GET a user
-/*app.get("/users/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const user = data.find((user) => user.id === id);
-  res.json(user ? user : { message: "NotÂ found" });
-});
-
-// ADD a user
-app.post("/users", (req, res) => {
-  const user = req.body;
-  data.push(user);
-  res.json(data);
-});
-
-//Â UPDATE a user
-app.put("/users/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const updatedUser = req.body;
-  data = data.map((user) => (user.id === id ? updatedUser : user));
-  res.json(data);
-});
-
-//Â DELETE a user
-app.delete("/users/:id", (req, res) => {
-  const id = Number(req.params.id);
-  data = data.filter((user) => user.id !== id);
-  res.json(data);
-});*/
