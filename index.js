@@ -100,7 +100,7 @@ app.get("/words/search/:word", (req, res) => {
 
   // Jos sana löytyy, palautetaan englanninkielinen pari
   if (filteredWords.length > 0) {
-    // Palautetaan löytynyt sana (palautuu stringinä, voin vaihtaa JSON-muotoon tarpeen mukaan)
+    // Palautetaan ensimmäinen löytynyt sana
     res.json(englishPair);
   } else {
     res.json({ message: "Word not found" });
