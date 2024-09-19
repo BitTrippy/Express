@@ -67,29 +67,52 @@ app.get("/words", (req, res) => {
   res.json(dictionary);
 });
 
-// Osoite: localhost:3000/words/search?fin=<hakusana>
+// Osoite: localhost:3000/words/search/<suomenkielinen sana>
 // Metodi: GET
 // Kuvaus: Hakee suomenkielisen sanan perusteella englanninkielisen vastineen
-// Parametrit: fin (suomenkielinen sana)
-app.get("/words/search", (req, res) => {
-  const { fin } = req.query;
-  const filteredWords = dictionary.filter((word) => word.fin === fin);
+app.get("/words/search/:word", (req, res) => {
+  // Muuttaa hakusanan pieniksi kirjaimisi
+  const finnishWord = req.params.word.toLowerCase();
+
+  // Luetaan sanakirja.txt-tiedoston sisältö
+  const readData = fs.readFileSync("./sanakirja.txt", {
+    encoding: "utf8",
+    flag: "r",
+  });
+
+  // Jokaisesta tiedoston rivista luodaan sanapari sanakirja listaan
+  const splitLines = readData.split(/\r?\n/);
+
+  // Käytetään map-metodia rivien läpikäyntiin ja sanojen erottamiseen. Palauttaa objektin, jossa suomalainen ja englanninkielinen sana
+  const filteredWords = splitLines
+    .map((line) => {
+      // Völilyönti toimii erottimena sanojen välissä
+      const words = line.split(" ");
+      return {
+        fin: words[0],
+        eng: words[1],
+      };
+    })
+    // Käytetään filteriä suodattamaan vain hakua vastaavat sanat
+    .filter((word) => word.fin === finnishWord);
+
   const englishPair = filteredWords.map((word) => ({ eng: word.eng }));
 
-  // Tarkistetaan onko sana löytynyt
+  // Jos sana löytyy, palautetaan englanninkielinen pari
   if (filteredWords.length > 0) {
+    // Palautetaan löytynyt sana (palautuu stringinä, voin vaihtaa JSON-muotoon tarpeen mukaan)
     res.json(englishPair);
   } else {
     res.json({ message: "Word not found" });
   }
 });
 
-// Osoite: localhost:3000/words/add?fin=<suomenkielinen sana>&eng=<englanninkielinen sana>
+// Osoite: localhost:3000/words/add
 // Metodi: POST
-// Kuvaus: Lisää uuden sanaparin sanakirjaan
+// Kuvaus: Lisää uuden sanaparin sanakirjaan body parametreina annettujen sanojen perusteella
 // Parametrit: fin (suomenkielinen sana), eng (englanninkielinen sana)
 app.post("/words/add", (req, res) => {
-  const { fin, eng } = req.query;
+  const { fin, eng } = req.body;
   const word = {
     fin,
     eng,
@@ -97,16 +120,18 @@ app.post("/words/add", (req, res) => {
 
   // Tarkistetaan onko sana jo olemassa vertaamalla fin ja eng parametreja dictionary-taulukon arvoihin
   const existingWord = dictionary.some(
-    (word) => (word.fin === fin) & (word.eng === eng)
+    // Tarkistetaan löytyykö suomalainen tai englanninkielinen sana jo sanakirjasta
+    (word) => word.fin === fin || word.eng === eng
   );
 
   // Jos sanaa ei löydy, lisätään se dictionary-taulukkoon ja sanakirja.txt-tiedostoon
   if (!existingWord) {
     dictionary.push(word);
     res.json(dictionary);
-    fs.writeFileSync("./sanakirja.txt", `\n${fin} ${eng}`, {
+
+    // Vaihdettu appendFileSync-metodiin, joka lisää tiedoston loppuun uuden sanaparin
+    fs.appendFileSync("./sanakirja.txt", `\n${fin} ${eng}`, {
       encoding: "utf8",
-      flag: "a",
     });
   } else {
     res.json({ message: "Word already exists" });
